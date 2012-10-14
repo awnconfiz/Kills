@@ -1,1 +1,121 @@
 <?php
+
+function kills_menu() {
+    $items['statistics'] = array(
+        'page callback' => 'stats_view',
+        'access callback' => TRUE,
+    );
+    return $items;
+}
+
+function stats_view() {
+   $path = drupal_get_path('module', 'kills');
+   drupal_add_js($path . '/js/ajax.js', array('weight' => 1));
+   drupal_add_js($path . '/js/highcharts.js', array('weight' => 1));
+   drupal_add_js($path . '/kills.js', array('weight' => 1));
+   
+   $page = "<h2><center>TOTAL NO. OF DEATHS RECORDED</CENTER></h2>";
+   $page .= calculate_deaths_in_all_provices();
+   $page .= "<BR/><BR/><h2><center>TOTAL NO. OF INJURIES RECORDED</CENTER></h2>";
+   $page.=calculate_injuries_in_all_provices();
+   $page .= '<br/><br/><div id="container" style="min-width: 400px; height: 400px; margin: 0 auto"></div>';
+    return $page;
+}
+function calculate_injuries_in_all_provices() {
+    $header = array(
+        array('data' => t('Punjab')),
+        array('data' => t('Sindh')),
+        array('data' => 'Balochistan'),
+        array('data' => 'KPK'),
+        array('data' => 'Baltistan/FATA'),
+    );
+    //$header = array('No. of deads in Punjab', 'No. of deads in Sindh', 'No. of deads in Balochistan', 'No. of deads in KPK', 'No. of deads in Gilgit Baltistan/FATA');
+    $query = db_select("node", "n");
+    $query->join("field_data_field_incident_province", "p", "n.nid=p.entity_id");
+    $query->join("field_revision_field_no_of_deaths", "d", "n.nid=d.entity_id");
+    $query->fields("p", array("field_incident_province_value"));
+    $query->fields("d", array("field_no_of_deaths_value"));
+    $result = $query->execute()->fetchAll();
+    $punjab_deaths = array();
+    $sindh_deaths = array();
+    $bal_deaths = array();
+    $kpk_deaths = array();
+    $fata_deaths = array();
+    foreach ($result as $death) {
+        if ($death->field_incident_province_value == "Punjab") {
+            array_push($punjab_deaths, $death->field_no_of_deaths_value);
+        } else if ($death->field_incident_province_value == "Sindh") {
+            array_push($sindh_deaths, $death->field_no_of_deaths_value);
+        } else if ($death->field_incident_province_value == "Balochistan") {
+            array_push($bal_deaths, $death->field_no_of_deaths_value);
+        } else if ($death->field_incident_province_value == "KPK") {
+            array_push($kpk_deaths, $death->field_no_of_deaths_value);
+        } else if ($death->field_incident_province_value == "Gilgit" || $death->field_incident_province_value == "FATA") {
+            array_push($fata_deaths, $death->field_no_of_deaths_value);
+        }
+    }
+    $sum [] = array(
+        array_sum($punjab_deaths),
+        array_sum($sindh_deaths),
+        array_sum($bal_deaths),
+        array_sum($kpk_deaths),
+        array_sum($fata_deaths),
+    );
+    $table = theme('table', array(
+        'header' => $header,
+        'rows' => $sum,
+        'empty' => 'No Incident reported yet ...',
+        )
+    );    
+
+    return $table;
+}
+function calculate_deaths_in_all_provices() {
+    $header = array(
+        array('data' => t('Punjab')),
+        array('data' => t('Sindh')),
+        array('data' => 'Balochistan'),
+        array('data' => 'KPK'),
+        array('data' => 'Baltistan/FATA'),
+    );
+    //$header = array('No. of deads in Punjab', 'No. of deads in Sindh', 'No. of deads in Balochistan', 'No. of deads in KPK', 'No. of deads in Gilgit Baltistan/FATA');
+    $query = db_select("node", "n");
+    $query->join("field_data_field_incident_province", "p", "n.nid=p.entity_id");
+    $query->join("field_revision_field_no_of_deaths", "d", "n.nid=d.entity_id");
+    $query->fields("p", array("field_incident_province_value"));
+    $query->fields("d", array("field_no_of_deaths_value"));
+    $result = $query->execute()->fetchAll();
+    $punjab_deaths = array();
+    $sindh_deaths = array();
+    $bal_deaths = array();
+    $kpk_deaths = array();
+    $fata_deaths = array();
+    foreach ($result as $death) {
+        if ($death->field_incident_province_value == "Punjab") {
+            array_push($punjab_deaths, $death->field_no_of_deaths_value);
+        } else if ($death->field_incident_province_value == "Sindh") {
+            array_push($sindh_deaths, $death->field_no_of_deaths_value);
+        } else if ($death->field_incident_province_value == "Balochistan") {
+            array_push($bal_deaths, $death->field_no_of_deaths_value);
+        } else if ($death->field_incident_province_value == "KPK") {
+            array_push($kpk_deaths, $death->field_no_of_deaths_value);
+        } else if ($death->field_incident_province_value == "Gilgit" || $death->field_incident_province_value == "FATA") {
+            array_push($fata_deaths, $death->field_no_of_deaths_value);
+        }
+    }
+    $sum [] = array(
+        array_sum($punjab_deaths),
+        array_sum($sindh_deaths),
+        array_sum($bal_deaths),
+        array_sum($kpk_deaths),
+        array_sum($fata_deaths),
+    );
+    $table = theme('table', array(
+        'header' => $header,
+        'rows' => $sum,
+        'empty' => 'No Incident reported yet ...',
+        )
+    );    
+
+    return $table;
+}
